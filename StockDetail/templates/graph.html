@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ symbol }} - 1 Month Price Trend</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.0.0/dist/chartjs-plugin-zoom.min.js"></script>
+</head>
+<body>
+    <h1>{{ symbol }} - 1 Month Price Trend</h1>
+    <canvas id="stockChart" width="500" height="100"></canvas>
+
+    <script>
+        // Parse the data from Django template
+        const data = JSON.parse('{{ data|escapejs }}');
+
+        // Prepare the data for Chart.js
+        const labels = data.map(record => {
+            // Convert Date string to Date object, then format as 'dd/mm/yyyy'
+            const date = new Date(record.Date);
+            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        });
+
+        const prices = data.map(record => record.Close);  // Extract closing prices
+
+        // Create the chart
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '{{ symbol }} Closing Price',
+                    data: prices,
+                    borderColor: 'blue',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return '₹' + tooltipItem.raw.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price (₹)'
+                        }
+                    }
+                },
+                // Enable zoom and pan functionality
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                        },
+                        zoom: {
+                            enabled: true,
+                            mode: 'xy',
+                            speed: 0.1,
+                            sensitivity: 3,
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

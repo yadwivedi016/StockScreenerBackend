@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Stock Details</h2>
+
+    {% if stock %}
+    <div class="card shadow-sm p-4">
+        <h3 class="text-primary">{{ stock.company_name }}</h3>
+        <p class="text-muted">Exchange: {{ stock.exchange }}</p>
+
+        <hr>
+
+        <h5 class="mt-4">Live Data</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Market Cap:</strong> ₹{{ live_data.market_cap }}</li>
+            <li class="list-group-item"><strong>Current Price:</strong> ₹{{ live_data.current_price }}</li>
+            <li class="list-group-item"><strong>Percent Change:</strong> {{ live_data.percent_change }}%</li>
+            <li class="list-group-item"><strong>Previous Close:</strong> ₹{{ live_data.previous_close }}</li>
+            <li class="list-group-item"><strong>Price-to-Earnings (P/E) Ratio:</strong> {{ live_data.price_to_earning }}</li>
+            <li class="list-group-item"><strong>Price-to-Book (P/B) Ratio:</strong> {{ live_data.price_to_book }}</li>
+            <li class="list-group-item"><strong>Dividend Yield (Live):</strong> {{ live_data.dividend_yield }}</li>
+            <li class="list-group-item"><strong>RSI (Relative Strength Index):</strong> {{ live_data.rsi }}</li>
+        </ul>
+
+        {% if live_data.error %}
+        <p class="text-danger">Error fetching live data: {{ live_data.error }}</p>
+        {% endif %}
+
+        <h5 class="mt-3">General Information</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>52-Week High:</strong> {{ stock.fifty_two_week_high }}</li>
+            <li class="list-group-item"><strong>52-Week Low:</strong> {{ stock.fifty_two_week_low }}</li>
+            <li class="list-group-item"><strong>Dividend Yield:</strong> {{ stock.dividend_yield }}%</li>
+            <li class="list-group-item"><strong>Book Value:</strong> ₹{{ stock.book_value }}</li>
+            <li class="list-group-item"><strong>Enterprise Value:</strong> ₹{{ stock.enterprise_value }}</li>
+        </ul>
+
+        <h5>Performance</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Earnings Yield:</strong> {{ stock.earnings_yield }}%</li>
+            <li class="list-group-item"><strong>PEG Ratio:</strong> {{ stock.peg_ratio }}</li>
+            <li class="list-group-item"><strong>Dividend Payout Ratio:</strong> {{ stock.dividend_payout_ratio }}%</li>
+            <li class="list-group-item"><strong>EPS (Earnings Per Share):</strong> ₹{{ stock.eps }}</li>
+        </ul>
+
+        <h5>Growth Metrics</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Revenue Growth (Yearly):</strong> {{ stock.year_revenue_growth }}%</li>
+            <li class="list-group-item"><strong>Revenue:</strong> ₹{{ stock.revenue }}</li>
+        </ul>
+
+        <h5>Price Changes</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Price Change (1 Month):</strong> {{ stock.price_perchng_1mon }}%</li>
+            <li class="list-group-item"><strong>Price Change (3 Months):</strong> {{ stock.price_perchng_3mon }}%</li>
+            <li class="list-group-item"><strong>Price Change (1 Year):</strong> {{ stock.price_perchng_1year }}%</li>
+            <li class="list-group-item"><strong>Price Change (3 Years):</strong> {{ stock.price_perchng_3year }}%</li>
+            <li class="list-group-item"><strong>Price Change (5 Years):</strong> {{ stock.price_perchng_5year }}%</li>
+        </ul>
+
+        <h5>Efficiency</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>ROCE (Return on Capital Employed):</strong> {{ stock.roce }}%</li>
+        </ul>
+
+        <h5>Volume</h5>
+        <ul class="list-group mb-3">
+            <li class="list-group-item"><strong>Average Volume:</strong> {{ stock.avg_volume }}</li>
+        </ul>
+
+    </div>
+    {% else %}
+    <p class="text-center text-danger">No stock details available.</p>
+    {% endif %}
+</div>
+
+
+<script>
+   fetch
+</script>
+{% endblock content %}
