@@ -1,9 +1,11 @@
 from django.contrib import admin
-from .models import StockDetail, Sector, Nifty50GraphHistory
+from .models import StockDetail, Sector, Nifty50GraphHistory,BSE_500_Stocks,BSE500GraphHistory
 
 # Register your other models
 admin.site.register(Sector)
 admin.site.register(StockDetail)
+admin.site.register(BSE_500_Stocks)
+admin.site.register(BSE500GraphHistory)
 
 # Define custom admin class for Nifty50GraphHistory
 class Nifty50GraphHistoryAdmin(admin.ModelAdmin):

@@ -65,3 +65,7 @@ class StockData:
         except Exception as e:
             print(f"Error fetching stock data: {e}")
             return None
+
+
+
+
