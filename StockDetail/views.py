@@ -5,9 +5,9 @@ from django.db import transaction
 from django.utils.timezone import make_aware
 from datetime import datetime
 import time
-import yfinance as yf
+import yfinance as yf # type: ignore
 from django.shortcuts import get_object_or_404, redirect
-from .models import StockDetail, Nifty50GraphHistory,BSE_500_Stocks,BSE500GraphHistory
+from .models import StockDetail, Nifty50GraphHistory,BSE_500_Stocks,BSE500GraphHistory,Company, BalanceSheet
 from .stock_data import StockData
 from .livedata import LiveData
 from datetime import datetime, timedelta
@@ -17,7 +17,13 @@ from .BSE_500_stock_data import BSE_Data
 import json
 from django.forms.models import model_to_dict
 from .BSE_Live_Data import BSE_Live_Data
-from .BSEtickers import tickers
+from .BSEtickers import tickers,bs_tickers
+from .bsegraphdata import FetchData
+from django.views import View
+from django.http import JsonResponse
+from bs4 import BeautifulSoup
+import requests
+
 
 class AddNifty50StockView(View):
     def add_nifty50_data(self): 
@@ -484,7 +490,7 @@ class BSEGraphView(View):
         data = self.fetch_stock_data(f"{symbol}.BO")
         return JsonResponse({"symbol": symbol, "data": data})  # JSON response
 
-    def fetch_stock_data(self, symbol, period="1d", interval="1m"):
+    def fetch_stock_data(self, symbol, period="1d", interval="5m"):
         """Fetch stock data at 1-minute intervals from Yahoo Finance."""
         ticker = yf.Ticker(f"{symbol}")  # Example stock symbol
         df = ticker.history(period=period, interval=interval)
@@ -506,84 +512,38 @@ class BSEGraphView(View):
 #Fetch BSE 500 stock graph data from y finance API 
 
 class FetchBSEMonthYearStockGraphDataView(View):
-    TIME_RANGES_MAPPING = {
-        "1M": "1mo",
-        "6M": "6mo",
-        "1Y": "1y",
-        "3Y": "3y",
-        "5Y": "5y",
-        "10Y": "10y",
-    }
+    def get(self, request, *args, **kwargs):
+        # Define the time ranges
+        # time_ranges = ["1M", "6M", "1Y", "3Y", "5Y", "10Y"]
+        time_ranges = ["10Y"]
+        saved_count = 0
+        
+        for time_range in time_ranges:
+            data_by_company = FetchData.get_data_for_all(time_range)
 
-    BSE_500_STOCK = ['GMRAIRPORT', 'TATAMOTORS', 'DIXON', 'RELIANCE', 'TCS', 'INFY', 'KALYANKJIL', 'MAZDOCK', 'HDFCBANK', 'TATASTEEL', 'CELLO', 'HAL', 'BEL', 'SUZLON', 'HINDUNILVR', 'SBIN', 'FINPIPE', 'KAYNES', 'LT', 'ADANIGREEN', 'TRENT', 'BAJFINANCE', 'HCLTECH', 'BHARTIARTL', 'MASTEK', 'HINDALCO', 'LUPIN', 'ADANIPOWER', 'KOTAKBANK', 'VEDL', 'MUTHOOTFIN', 'ADANIENT', 'AMBUJACEM', 'JIOFIN', 'M&M', 'COCHINSHIP', 'COFORGE', 'ICICIBANK', 'NBCC', 'COALINDIA', 'SIEMENS', 'AMBER', 'TEJASNET', 'ONGC', 'REC', 'BDL', 'TATAPOWER', 'TITAN', 'ATUL', 'POLYCAB', 'WIPRO', 'ADANIPORTS', 'PAYTM', 'HUDCO', 'ITC', 'PIIND', 'AXISBANK', 'PERSISTENT', 'BAJAJFINSV', 'NTPC', 'CIPLA', 'NATIONALUM', 'PNBHOUSING', 'ANANTRAJ', 'MOTILALOFS', 'MOTHERSON', 'CANBK', 'KPITTECH', 'PFC', 'RVNL', 'NESTLEIND', 'JINDALSTEL', 'POWERGRID', 'IREDA', 'HINDPETRO', 'JSWSTEEL', 'HBLENGINE', 'BANKBARODA', 'ADANIENSOL', 'GRSE', 'UJJIVANSFB', 'DMART', 'NH', 'SUNPHARMA', 'WELSPUNLIV', 'MCX', 'SAIL', 'COROMANDEL', 'LAURUSLABS', 'INDUSINDBK', 'OLECTRA', 'ZEEL', 'CGPOWER', 'CHENNPETRO', 'VBL', 'BANKINDIA', 'AARTIIND', 'EASEMYTRIP', 'SRF', 'INDIGO', 'BLS', 'APLAPOLLO', 'NHPC', 'TATAELXSI', 'BHEL', 'CHAMBLFERT', 'LTIM', 'IDFCFIRSTB', 'ASAHIINDIA', 'MARUTI', 'ASIANPAINT', 'IRFC', 'DLF', 'TATACONSUM', 'PAGEIND', 'SONACOMS', 'BEML', 'SOLARINDS', 'YESBANK', 'NMDC', 'DRREDDY', 'DELHIVERY', 'ANGELONE', 'MRF', 'TRITURBINE', 'CHOLAFIN', 'DIVISLAB', 'PNB', 'BIOCON', 'VOLTAS', 'IRB', 'JWL', 'LICI', 'HSCL', 'HINDCOPPER', 'BPCL', 'ASTRAL', 'CAMS', 'MAXHEALTH', 'INOXWIND', 'INDUSTOWER', 'HINDZINC', 'GODREJPROP', 'IOC', 'NATCOPHARM', 'LODHA', 'ZYDUSLIFE', 'BHARATFORG', 'AFFLE', 'DABUR', 'UNIONBANK', 'IOB', 'PCBL', 'JYOTHYLAB', 'INDHOTEL', 'SWANENERGY', 'ULTRACEMCO', 'SHRIRAMFIN', 'HAVELLS', 'RKFORGE', 'CASTROLIND', 'BAJAJ-AUTO', 'DEEPAKFERT', 'OIL', '360ONE', 'ATGL', 'TITAGARH', 'IGL', 'REDINGTON', 'AEGISLOG', 'NEWGEN', 'KEI', 'PATANJALI', 'COLPAL', 'TECHM', 'AAVAS', 'ACI', 'GAIL', 'TANLA', 'TATACHEM', 'JSWENERGY', 'POWERINDIA', 'FSL', 'NCC', 'JBMA', 'SJVN', 'MANAPPURAM', 'HDFCAMC', 'MAHABANK', 'J&KBANK', 'NAUKRI', 'HFCL', 'PPLPHARMA', 'SWSOLAR', 'BHARTIHEXA', 'GODREJCP', 'APOLLOHOSP', 'AUROPHARMA', 'UPL', 'ZENSARTECH', 'CHOLAHLDNG', 'FORTIS', 'LLOYDSME', 'TATATECH', 'IRCTC', 'POLICYBZR', 'GRASIM', 'FEDERALBNK', 'HDFCLIFE', 'ABCAPITAL', 'LICHSGFIN', 'BAJAJHLDNG', 'GLENMARK', 'GRANULES', 'TRIDENT', 'PVRINOX', 'DATAPATTNS', 'MARICO', 'ARE&M', 'TORNTPOWER', 'JUBLFOOD', 'NAM-INDIA', 'UCOBANK', 'ABB', 'IIFL', 'MRPL', 'TECHNOE', 'MEDANTA', 'IFCI', 'DEVYANI', 'CENTRALBK', 'BLUESTARCO', 'EXIDEIND', 'MFSL', 'APOLLOTYRE', 'JUBLPHARMA', 'BRITANNIA', 'HAPPSTMNDS', 'MGL', 'PHOENIX', 'HEROMOTOCO', 'CONCOR', 'AUBANK', 'NYKAA', 'OFSS', 'CCL', 'LTF', 'POONAWALLA', 'KFINTECH', 'ICICIPRULI', 'MANKIND', 'MPHASIS', 'RCF', 'PRAJIND', 'INTELLECT', 'NAVINFLUOR', 'VTL', 'HOMEFIRST', 'RAINBOW', 'KIRLOSBROS', 'ELGIEQUIP', 'CUB', 'ANANDRATHI', 'GSPL', 'EICHERMOT', 'GLAND', 'IDBI', 'JUBLINGREA', 'BOSCH', 'ASHOKLEY', 'AWL', 'BALKRISIND', 'JUSTDIAL', 'PIDILITIND', 'ICICIGI', 'ESCORTS', 'TVSMOTOR', 'GODFRYPHLP', 'OBEROIRLTY', 'ASTRAZEN', 'GESHIP', 'TIINDIA', 'ENGINERSIN', 'BANDHANBNK', 'UNOMINDA', 'KEC', 'TATAINVEST', 'CEAT', 'KNRCON', 'CYIENT', 'IRCON', 'JSL', 'M&MFIN', 'GODREJAGRO', 'RITES', 'RBLBANK', 'WELCORP', 'HEG', 'KPRMILL', 'CREDITACC', 'NUVAMA', 'NLCINDIA', 'TTML', 'IEX', 'FLUOROCHEM', 'MAPMYINDIA', 'CUMMINSIND', 'GRAPHITE', 'ABFRL', 'ASTERDM', 'PSB', 'APARINDS', 'TATACOMM', 'SUPREMEIND', 'KIRLOSENG', 'SAMMAANCAP', 'BSOFT', 'JKCEMENT', 'JINDALSAW', 'BERGEPAINT', 'SIGNATURE', 'SHREECEM', 'KAMAHOLD', 'ABREL', 'NSLNISP', 'RAJESHEXPO', 'POLYMED', 'BIKAJI', 'ACC', 'LTTS', 'ALKYLAMINE', 'ERIS', 'GILLETTE', 'SUNTV', 'JMFINANCIL', 'SBICARD', 'RHIM', 'GSFC', 'MMTC', 'SONATSOFTW', 'LALPATHLAB', 'SHYAMMETL', 'STARHEALTH', 'SUMICHEM', 'CRISIL', 'RENUKA', 'MAHSEAMLES', 'MAHLIFE', 'JSWINFRA', 'RAMCOCEM', 'APL', 'PRESTIGE', 'KAJARIACER', 'UNITDSPR', 'CGCL', 'CROMPTON', 'SCHNEIDER', 'GLAXO', 'LEMONTREE', 'TIMKEN', 'NETWORK18', 'SBILIFE', 'GMDC', 'FIVESTAR', 'GODREJIND', 'INDIANB', 'MANYAVAR', 'PEL', 'WHIRLPOOL', 'MEDPLUS', 'RRKABEL', 'BALRAMCHIN', 'BALAMINES', 'TVSH', 'SUVENPHAR', 'CHALET', 'EQUITASBNK', 'PTCIL', '3MINDIA', 'BRIGADE', 'ENDURANCE', 'GPPL', 'FINCABLES', 'ABSLAMC', 'IPCALAB', 'LINDEINDIA', 'ANURAS', 'FINEORG', 'CESC', 'ACE', 'TBOTEK', 'GNFC', 'GICRE', 'ROUTE', 'UTIAMC', 'PETRONET', 'KIMS', 'BATAINDIA', 'SANOFI', 'EIHOTEL', 'SPARC', 'EIDPARRY', 'CONCORDBIO', 'ZFCVINDIA', 'ECLERX', 'BASF', 'MSUMI', 'KANSAINER', 'CLEAN', 'PFIZER', 'JBCHEPHARM', 'THERMAX', 'BBTC', 'CANFINHOME', 'SAPPHIRE', 'ITI', 'MIDHANI', 'SUNTECK', 'CAMPUS', 'MAHSCOOTER', 'CARBORUNIV', 'LATENTVIEW', 'ABBOTINDIA', 'LMW', 'TORNTPHARM', 'RELAXO', 'BIRLACORPN', 'SOBHA', 'INDIACEM', 'PNCINFRA', 'GODIGIT', 'AIIL', 'KPIL', 'MINDACORP', 'CENTURYPLY', 'EMAMI', 'AIAENG', 'APTUS', 'METROPOLIS', 'USHAMART', 'DALBHARAT', 'CRAFTSMAN', 'PGHH', 'SUNDRMFAST', 'RADICO', 'GRINFRA', 'VGUARD', 'VINATIORGA', 'ZYDUSWELL', 'NIACL', 'GALAXYSURF', 'SYNGENE', 'LXCHEM', 'AJANTPHARM', 'FDC', 'INDIAMART', 'BAYERCROP', 'BLUEDART', 'AETHER', 'UBL', 'SCHAEFFLER', 'HONASA', 'MHRIL', 'CERA', 'METROBRAND', 'SKFINDIA', 'HATSUN', 'INGERRAND', 'DCMSHRIRAM', 'NUVOCO', 'GRINDWELL', 'ALKEM', 'TTKPRESTIG', 'SFL', 'GARFIBRES', 'VARROC', 'STARCEMENT', 'HONAUT', 'ESABINDIA', 'SPLPETRO', 'CIEINDIA', 'TMB', 'AKZOINDIA', 'SHOPERSTOP', 'PRSMJOHNSN', 'RATNAMANI', 'PGHL', 'WESTLIFE', 'KIOCL', 'JKLAKSHMI', 'CHEMPLASTS']
+            for company_name, records in data_by_company.items():
+                symbol = tickers.get(company_name)
 
-    def get(self, request):
-        try:
-            for i, stock_symbol in enumerate(self.BSE_500_STOCK):
-                stock = yf.Ticker("stock_symbol")
+                if not symbol:
+                    print(f"Ticker symbol for {company_name} not found.")
+                    continue
 
-                for time_range, period in self.TIME_RANGES_MAPPING.items():
-                    data = stock.history(period=period, interval="1d")
-                    if data.empty:
-                        continue
+                for record in records:
+                    obj, created = BSE500GraphHistory.objects.update_or_create(
+                        symbol=symbol,
+                        date=record["date"],
+                        time_range=time_range,
+                        defaults={
+                            "open_price": record["open_price"],
+                            "high_price": record["high_price"],
+                            "low_price": record["low_price"],
+                            "close_price": record["close_price"],
+                            "volume": record["volume"],
+                        }
+                    )
+                    saved_count += 1
 
-                    # Fetch existing records as a dictionary
-                    existing_records = {
-                        (entry.date.date(), entry.time_range): entry
-                        for entry in Nifty50GraphHistory.objects.filter(
-                            symbol=stock_symbol,
-                            time_range=time_range
-                        )
-                    }
-
-                    new_entries = []
-                    updated_entries = []
-
-                    for index, row in data.iterrows():
-                        date = make_aware(datetime.strptime(str(index.date()), "%Y-%m-%d"))
-
-                        record_key = (date.date(), time_range)  # Compare only the DATE
-
-                        if record_key in existing_records:
-                            #   Update existing record
-                            record = existing_records[record_key]
-                            record.open_price = row["Open"]
-                            record.high_price = row["High"]
-                            record.low_price = row["Low"]
-                            record.close_price = row["Close"]
-                            record.volume = row["Volume"]
-                            updated_entries.append(record)
-                        else:
-                            #   Create new record
-                            new_entries.append(Nifty50GraphHistory(
-                                symbol=stock_symbol,
-                                date=date,
-                                time_range=time_range,
-                                open_price=row["Open"],
-                                high_price=row["High"],
-                                low_price=row["Low"],
-                                close_price=row["Close"],
-                                volume=row["Volume"],
-                            ))
-
-                    #   Bulk Insert & Update in an atomic transaction
-                    with transaction.atomic():
-                        if new_entries:
-                            BSE500GraphHistory.objects.bulk_create(new_entries)
-                        if updated_entries:
-                            BSE500GraphHistory.objects.bulk_update(
-                                updated_entries,
-                                ["open_price", "high_price", "low_price", "close_price", "volume"]
-                            )
-
-                #   Prevent API rate limit issues
-                if (i + 1) % 5 == 0:
-                    time.sleep(2)
-
-            return JsonResponse({"message": "Stock data fetched, updated, and saved successfully."})
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"status": "success", "records_saved": saved_count})
 
 #------------------------------------------------------------------
 #Fetch BSE 500 stock graph data from model
@@ -667,3 +627,133 @@ class GetBSEMonthAndYearStockGraphDataView(View):
             "time_range": time_range,
             "data": data
         }, status=200)
+
+
+#------------------------------------------------------------------
+class StockDataView(View):
+    def get(self, request, symbol):
+        ticker = yf.Ticker(symbol)
+        data = ticker.history(period="12mo", interval="1d")
+        
+        if data.empty:
+            return JsonResponse({"error": f"No data found for {symbol}. It might be delisted or the symbol is incorrect."}, status=404)
+        
+        # Prepare the stock data in a list of dictionaries
+        stock_data = data[['Close']].reset_index().to_dict(orient='records')
+
+        # Return the stock data as JSON
+        return JsonResponse({"symbol": symbol, "stock_data": stock_data})
+    
+# ----------------------------------------------------------------------------------
+from .testing import BalanceSheet
+
+class BalanceSheetView(View):
+    def get(self, request,symbol):
+        # Fetch the balance sheet data for the given symbol
+        balance_sheet = BalanceSheet()
+        data = balance_sheet.data(symbol)
+
+        if not data:
+            return JsonResponse({"error": "No data found"}, status=404)
+
+        # Return the balance sheet data as JSON
+        return JsonResponse(data, safe=False)
+
+#------------------------------------------------------------------------------------------
+from .models import Company, BalanceSheet
+
+
+
+
+class BalanceSheetScraperView(View):
+    def get(self, request):
+        for ticker in bs_tickers.keys():
+            try:
+                url = f"https://dhan.co/stocks/{bs_tickers[ticker]}-financial-results/"
+                response = requests.get(url)
+                soup = BeautifulSoup(response.text, "html.parser")
+
+                column_names = soup.find_all("th", class_="!px-4 !py-2.5 w-20")
+                row_data = soup.find_all("td", class_="!px-4 !py-2.5")
+                total_liabilities = soup.find_all("td", class_="!px-4 !py-2.5 !bg-[#fffbf8]")
+                total_assets = soup.find_all("td", class_="!px-4 !py-2.5 !bg-[#fffbf8]")
+
+                # Extract year columns
+                Yearly_Balance_Sheet = [name.text for name in column_names[5:10]]
+
+                # Extract financial data
+                Share_Capital = [value.text for value in row_data[45:50]]
+                Reserve_And_Surplus = [value.text for value in row_data[50:55]]
+                Minority_Interest = [value.text for value in row_data[55:60]]
+                Non_Current_Liabilities = [value.text for value in row_data[60:65]]
+                Current_Liabilities = [value.text for value in row_data[65:70]]
+                Total_Liabilities = [value.text for value in total_liabilities[10:15]]
+                Fixed_Assets = [value.text for value in row_data[70:75]]
+                Capital_Work_in_Progress = [value.text for value in row_data[75:80]]
+                Investments = [value.text for value in row_data[80:85]]
+                Other_Assets = [value.text for value in row_data[85:90]]
+                Total_Assets = [value.text for value in total_assets[10:15]]
+
+                # Create or retrieve company
+                company_name = ticker
+                company, _ = Company.objects.get_or_create(name=company_name)
+
+                # Store each year's data
+                for i in range(len(Yearly_Balance_Sheet)):
+                    BalanceSheet.objects.create(
+                        company=company,
+                        year=Yearly_Balance_Sheet[i],
+                        share_capital=Share_Capital[i],
+                        reserve_and_surplus=Reserve_And_Surplus[i],
+                        minority_interest=Minority_Interest[i],
+                        non_current_liabilities=Non_Current_Liabilities[i],
+                        current_liabilities=Current_Liabilities[i],
+                        total_liabilities=Total_Liabilities[i],
+                        fixed_assets=Fixed_Assets[i],
+                        capital_work_in_progress=Capital_Work_in_Progress[i],
+                        investments=Investments[i],
+                        other_assets=Other_Assets[i],
+                        total_assets=Total_Assets[i],
+                    )
+
+            except Exception as e:
+                print(f"Error for {ticker}: {e}")
+                continue
+
+        return JsonResponse({"status": "success", "message": "All balance sheets scraped and saved."})
+
+#--------------------------------------------------------------------------------------
+
+class BalanceSheetDataView(View):
+    def get(self, request, company_name=None):
+        if company_name:
+            # Fetch data for a specific company
+            company = Company.objects.filter(name=company_name).first()
+            if not company:
+                return JsonResponse({"error": "Company not found"}, status=404)
+
+            balance_sheets = BalanceSheet.objects.filter(company=company)
+        else:
+            # Fetch data for all companies
+            balance_sheets = BalanceSheet.objects.all()
+
+        # Format the balance sheet data to return as JSON
+        data = []
+        for bs in balance_sheets:
+            data.append({
+                "company_name": bs.company.name,
+                "year": bs.year,
+                "share_capital": bs.share_capital,
+                "reserve_and_surplus": bs.reserve_and_surplus,
+                "minority_interest": bs.minority_interest,
+                "non_current_liabilities": bs.non_current_liabilities,
+                "current_liabilities": bs.current_liabilities,
+                "total_liabilities": bs.total_liabilities,
+                "fixed_assets": bs.fixed_assets,
+                "capital_work_in_progress": bs.capital_work_in_progress,
+                "investments": bs.investments,
+                "other_assets": bs.other_assets,
+                "total_assets": bs.total_assets,
+            })
+
+        return JsonResponse(data, safe=False)

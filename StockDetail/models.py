@@ -110,3 +110,37 @@ class BSE500GraphHistory(models.Model):
 
     def __str__(self):
         return f"{self.symbol} - {self.time_range} - {self.date}"
+
+
+
+
+from django.db import models
+
+class Company(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class BalanceSheet(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    year = models.CharField(max_length=10)
+
+    share_capital = models.CharField(max_length=100, blank=True, null=True)
+    reserve_and_surplus = models.CharField(max_length=100, blank=True, null=True)
+    minority_interest = models.CharField(max_length=100, blank=True, null=True)
+    non_current_liabilities = models.CharField(max_length=100, blank=True, null=True)
+    current_liabilities = models.CharField(max_length=100, blank=True, null=True)
+    total_liabilities = models.CharField(max_length=100, blank=True, null=True)
+
+    fixed_assets = models.CharField(max_length=100, blank=True, null=True)
+    capital_work_in_progress = models.CharField(max_length=100, blank=True, null=True)
+    investments = models.CharField(max_length=100, blank=True, null=True)
+    other_assets = models.CharField(max_length=100, blank=True, null=True)
+    total_assets = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.company.name} - {self.year}"
+
+
