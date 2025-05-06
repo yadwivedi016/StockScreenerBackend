@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AddNifty50StockView, StockDetailsView, SearchView, GraphView, FetchNifty50StockGraphDataView, GetNifty50StockGraphDataView, BSE500StockView, BseStockDetailsView, BSEGraphView, GetBSEMonthAndYearStockGraphDataView, FetchBSEMonthYearStockGraphDataView, BalanceSheetView, BalanceSheetScraperView, BalanceSheetDataView
+from .views import AddNifty50StockView, StockDetailsView, SearchView, GraphView, FetchNifty50StockGraphDataView, GetNifty50StockGraphDataView, BSE500StockView, BseStockDetailsView, BSEGraphView, GetBSEMonthAndYearStockGraphDataView, FetchBSEMonthYearStockGraphDataView, BalanceSheetScraperView, BalanceSheetDataView
 
 urlpatterns = [
     path("", SearchView.as_view(), name="search-view"),  # Search page
@@ -24,12 +24,10 @@ urlpatterns = [
     path('bse-year-month-graph-data/<str:symbol>/', GetBSEMonthAndYearStockGraphDataView.as_view(), name='fetch-bse-graph-data-view'),
     
     path("fetch-bse-month-year-graph-data/", FetchBSEMonthYearStockGraphDataView.as_view(), name="fetch-bse-month-year-graph-data-view"),
-
-    path('balance-sheet/<str:symbol>/', BalanceSheetView.as_view(), name='balance-sheet-view'),  # Balance sheet view
    
-    path("balance-sheet-fetch", BalanceSheetScraperView.as_view(), name="balance-sheet-fetch-view"),
+    # path("balance-sheet-fetch", BalanceSheetScraperView.as_view(), name="balance-sheet-fetch-view"),
 
-    path("balance-sheet-data/", BalanceSheetDataView.as_view(), name="balance_sheet_data"),  # All data
+    # path("balance-sheet-data/", BalanceSheetDataView.as_view(), name="balance_sheet_data"),  # All data
    
     path("balance-sheet-data/<str:company_name>/", BalanceSheetDataView.as_view(), name="balance_sheet_data_company"),  # Data for a specific company
 ]
