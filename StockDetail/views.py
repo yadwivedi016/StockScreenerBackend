@@ -643,27 +643,9 @@ class StockDataView(View):
 
         # Return the stock data as JSON
         return JsonResponse({"symbol": symbol, "stock_data": stock_data})
-    
-# ----------------------------------------------------------------------------------
-from .testing import BalanceSheet
-
-class BalanceSheetView(View):
-    def get(self, request,symbol):
-        # Fetch the balance sheet data for the given symbol
-        balance_sheet = BalanceSheet()
-        data = balance_sheet.data(symbol)
-
-        if not data:
-            return JsonResponse({"error": "No data found"}, status=404)
-
-        # Return the balance sheet data as JSON
-        return JsonResponse(data, safe=False)
 
 #------------------------------------------------------------------------------------------
 from .models import Company, BalanceSheet
-
-
-
 
 class BalanceSheetScraperView(View):
     def get(self, request):
