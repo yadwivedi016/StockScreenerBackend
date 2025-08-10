@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils.timezone import make_aware
 from datetime import datetime
 import time
-import yfinance as yf # type: ignore
+import yfinance as yf 
 from django.shortcuts import get_object_or_404, redirect
 from .models import StockDetail, Nifty50GraphHistory,BSE_500_Stocks,BSE500GraphHistory,Company, BalanceSheet
 from .stock_data import StockData
@@ -21,8 +21,8 @@ from .BSEtickers import tickers,bs_tickers
 from .bsegraphdata import FetchData
 from django.views import View
 from django.http import JsonResponse
-from bs4 import BeautifulSoup
-import requests
+from bs4 import BeautifulSoup 
+import requests 
 
 
 class AddNifty50StockView(View):
@@ -30,7 +30,7 @@ class AddNifty50StockView(View):
         stock_data = StockData()
         for i in range(50):
             try:
-                data = stock_data.nifty_50_stock_data(id=i)  # Fetch stock data for each index
+                data = stock_data.nifty_50_stock_data(id=i)  # Fetch stock data for each index``
                 if not data:  # Skip empty data
                     continue
 
@@ -115,81 +115,102 @@ class StockDetailsView(View):
     
 
 
+import requests
+import pandas as pd
+from django.http import JsonResponse
+from django.views import View
+
 class GraphView(View):
     def get(self, request, symbol):
         nifty50_tickers = {
-        "Reliance Industries": "RELIANCE.NS",
-        "Tata Consultancy Services": "TCS.NS",
-        "HDFC Bank": "HDFCBANK.NS",
-        "Bharti Airtel": "BHARTIARTL.NS",
-        "ICICI Bank": "ICICIBANK.NS",
-        "Infosys": "INFY.NS",
-        "State Bank of India": "SBIN.NS",
-        "Hindustan Unilever": "HINDUNILVR.NS",
-        "Bajaj Finance": "BAJFINANCE.NS",
-        "ITC": "ITC.NS",
-        "LIC of India": "LICI.NS",
-        "HCL Technologies": "HCLTECH.NS",
-        "Larsen & Toubro": "LT.NS",
-        "Sun Pharmaceutical": "SUNPHARMA.NS",
-        "Maruti Suzuki": "MARUTI.NS",
-        "Kotak Bank": "KOTAKBANK.NS",
-        "Mahindra & Mahindra": "M&M.NS",
-        "Wipro": "WIPRO.NS",
-        "UltraTech Cement": "ULTRACEMCO.NS",
-        "Axis Bank": "AXISBANK.NS",
-        "NTPC": "NTPC.NS",
-        "Oil & Natural Gas Corporation": "ONGC.NS",
-        "Bajaj Finserv": "BAJAJFINSV.NS",
-        "Titan": "TITAN.NS",
-        "Adani Enterprises": "ADANIENT.NS",
-        "Tata Motors": "TATAMOTORS.NS",
-        "Power Grid Corporation of India": "POWERGRID.NS",
-        "Avenue Supermarts DMart": "DMART.NS",
-        "JSW Steel": "JSWSTEEL.NS",
-        "Bajaj Auto": "BAJAJ-AUTO.NS",
-        "Adani Ports & SEZ": "ADANIPORTS.NS",
-        "Zomato": "ZOMATO.NS",
-        "Hindustan Aeronautics": "HAL.NS",
-        "Coal India": "COALINDIA.NS",
-        "Asian Paints": "ASIANPAINT.NS",
-        "Nestle": "NESTLEIND.NS",
-        "Adani Power": "ADANIPOWER.NS",
-        "Bharat Electronics": "BEL.NS",
-        "Trent": "TRENT.NS",
-        "Siemens": "SIEMENS.NS",
-        "Hindustan Zinc": "HINDZINC.NS",
-        "DLF": "DLF.NS",
-        "Interglobe Aviation": "INDIGO.NS",
-        "Tata Steel": "TATASTEEL.NS",
-        "Indian Oil Corporation": "IOC.NS",
-        "Vedanta": "VEDL.NS",
-        "Tech Mahindra": "TECHM.NS",
-        "IRFC": "IRFC.NS",
-        "Grasim Industries": "GRASIM.NS",
-        "LTI Mindtree": "LTIM.NS"
-    }
-        """Handles GET requests and fetches 1-minute interval stock data."""
-        
-        symbol = nifty50_tickers[symbol]  # Example stock symbol
-        data = self.fetch_stock_data(symbol)
-        return JsonResponse({"symbol": symbol, "data": data})  # JSON response
+            "Reliance Industries": "RELIANCE.NS",
+            "Tata Consultancy Services": "TCS.NS",
+            "HDFC Bank": "HDFCBANK.NS",
+            "Bharti Airtel": "BHARTIARTL.NS",
+            "ICICI Bank": "ICICIBANK.NS",
+            "Infosys": "INFY.NS",
+            "State Bank of India": "SBIN.NS",
+            "Hindustan Unilever": "HINDUNILVR.NS",
+            "Bajaj Finance": "BAJFINANCE.NS",
+            "ITC": "ITC.NS",
+            "LIC of India": "LICI.NS",
+            "HCL Technologies": "HCLTECH.NS",
+            "Larsen & Toubro": "LT.NS",
+            "Sun Pharmaceutical": "SUNPHARMA.NS",
+            "Maruti Suzuki": "MARUTI.NS",
+            "Kotak Bank": "KOTAKBANK.NS",
+            "Mahindra & Mahindra": "M&M.NS",
+            "Wipro": "WIPRO.NS",
+            "UltraTech Cement": "ULTRACEMCO.NS",
+            "Axis Bank": "AXISBANK.NS",
+            "NTPC": "NTPC.NS",
+            "Oil & Natural Gas Corporation": "ONGC.NS",
+            "Bajaj Finserv": "BAJAJFINSV.NS",
+            "Titan": "TITAN.NS",
+            "Adani Enterprises": "ADANIENT.NS",
+            "Tata Motors": "TATAMOTORS.NS",
+            "Power Grid Corporation of India": "POWERGRID.NS",
+            "Avenue Supermarts DMart": "DMART.NS",
+            "JSW Steel": "JSWSTEEL.NS",
+            "Bajaj Auto": "BAJAJ-AUTO.NS",
+            "Adani Ports & SEZ": "ADANIPORTS.NS",
+            "Zomato": "ZOMATO.NS",
+            "Hindustan Aeronautics": "HAL.NS",
+            "Coal India": "COALINDIA.NS",
+            "Asian Paints": "ASIANPAINT.NS",
+            "Nestle": "NESTLEIND.NS",
+            "Adani Power": "ADANIPOWER.NS",
+            "Bharat Electronics": "BEL.NS",
+            "Trent": "TRENT.NS",
+            "Siemens": "SIEMENS.NS",
+            "Hindustan Zinc": "HINDZINC.NS",
+            "DLF": "DLF.NS",
+            "Interglobe Aviation": "INDIGO.NS",
+            "Tata Steel": "TATASTEEL.NS",
+            "Indian Oil Corporation": "IOC.NS",
+            "Vedanta": "VEDL.NS",
+            "Tech Mahindra": "TECHM.NS",
+            "IRFC": "IRFC.NS",
+            "Grasim Industries": "GRASIM.NS",
+            "LTI Mindtree": "LTIM.NS"
+        }
 
-    def fetch_stock_data(self, symbol, period="1d", interval="1m"):
-        """Fetch stock data at 1-minute intervals from Yahoo Finance."""
-        ticker = yf.Ticker(f"{symbol}")  # Example stock symbol
-        df = ticker.history(period=period, interval=interval)
+        if symbol not in nifty50_tickers:
+            return JsonResponse({"error": "Invalid symbol"}, status=400)
 
-        if df.empty:
-            return []  # Return empty list if no data is available
+        ticker = nifty50_tickers[symbol]
+        data = self.fetch_stock_data(ticker)
 
-        df.index = df.index.strftime('%Y-%m-%d %H:%M:%S')  # Convert index to readable string format
+        return JsonResponse({"symbol": ticker, "data": data})
 
-        # Convert DataFrame to a dictionary format
-        stock_data = df[['Close']].reset_index()
-        stock_data.rename(columns={"Datetime": "date", "Close": "close_price"}, inplace=True)
+    def fetch_stock_data(self, ticker):
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        params = {
+            "interval": "1m",
+            "range": "1d"
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
 
-        return stock_data.to_dict(orient='records')  # JSON-friendly format
+        response = requests.get(url, params=params, headers=headers)
+
+        if response.status_code != 200:
+            return []
+
+        try:
+            data = response.json()
+            result = data["chart"]["result"][0]
+            timestamps = result["timestamp"]
+            indicators = result["indicators"]["quote"][0]
+            df = pd.DataFrame(indicators)
+            df["date"] = pd.to_datetime(timestamps, unit="s").strftime('%Y-%m-%d %H:%M:%S')
+            df = df[["date", "close"]].dropna()
+            df.rename(columns={"close": "close_price"}, inplace=True)
+            return df.to_dict(orient="records")
+        except Exception as e:
+            return []
+
 
 
 
@@ -220,16 +241,31 @@ class FetchNifty50StockGraphDataView(View):
     def get(self, request):
         try:
             for i, stock_symbol in enumerate(self.NIFTY_50_STOCKS):
-                stock = yf.Ticker(stock_symbol)
-
                 for time_range, period in self.TIME_RANGES_MAPPING.items():
-                    data = stock.history(period=period, interval="1d")
-                    if data.empty:
+                    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{stock_symbol}?range={period}&interval=1d"
+                    response = requests.get(url)
+                    if response.status_code != 200:
                         continue
 
-                    # Fetch existing records as a dictionary
+                    result = response.json().get("chart", {}).get("result", [])
+                    if not result:
+                        continue
+
+                    chart_data = result[0]
+                    timestamps = chart_data.get("timestamp", [])
+                    indicators = chart_data.get("indicators", {}).get("quote", [{}])[0]
+
+                    open_prices = indicators.get("open", [])
+                    high_prices = indicators.get("high", [])
+                    low_prices = indicators.get("low", [])
+                    close_prices = indicators.get("close", [])
+                    volumes = indicators.get("volume", [])
+
+                    if not timestamps or not open_prices:
+                        continue
+
                     existing_records = {
-                        (entry.date.date(), entry.time_range): entry
+                        (entry.date.date(), time_range): entry
                         for entry in Nifty50GraphHistory.objects.filter(
                             symbol=stock_symbol,
                             time_range=time_range
@@ -239,34 +275,40 @@ class FetchNifty50StockGraphDataView(View):
                     new_entries = []
                     updated_entries = []
 
-                    for index, row in data.iterrows():
-                        date = make_aware(datetime.strptime(str(index.date()), "%Y-%m-%d"))
+                    for idx in range(len(timestamps)):
+                        ts = timestamps[idx]
+                        o = open_prices[idx]
+                        h = high_prices[idx]
+                        l = low_prices[idx]
+                        c = close_prices[idx]
+                        v = volumes[idx]
 
-                        record_key = (date.date(), time_range)  # Compare only the DATE
+                        if None in (o, h, l, c, v):
+                            continue
+
+                        date = make_aware(datetime.fromtimestamp(ts))
+                        record_key = (date.date(), time_range)
 
                         if record_key in existing_records:
-                            #   Update existing record
                             record = existing_records[record_key]
-                            record.open_price = row["Open"]
-                            record.high_price = row["High"]
-                            record.low_price = row["Low"]
-                            record.close_price = row["Close"]
-                            record.volume = row["Volume"]
+                            record.open_price = o
+                            record.high_price = h
+                            record.low_price = l
+                            record.close_price = c
+                            record.volume = v
                             updated_entries.append(record)
                         else:
-                            #   Create new record
                             new_entries.append(Nifty50GraphHistory(
                                 symbol=stock_symbol,
                                 date=date,
                                 time_range=time_range,
-                                open_price=row["Open"],
-                                high_price=row["High"],
-                                low_price=row["Low"],
-                                close_price=row["Close"],
-                                volume=row["Volume"],
+                                open_price=o,
+                                high_price=h,
+                                low_price=l,
+                                close_price=c,
+                                volume=v,
                             ))
 
-                    #   Bulk Insert & Update in an atomic transaction
                     with transaction.atomic():
                         if new_entries:
                             Nifty50GraphHistory.objects.bulk_create(new_entries)
@@ -276,7 +318,6 @@ class FetchNifty50StockGraphDataView(View):
                                 ["open_price", "high_price", "low_price", "close_price", "volume"]
                             )
 
-                #   Prevent API rate limit issues
                 if (i + 1) % 5 == 0:
                     time.sleep(2)
 
@@ -483,28 +524,48 @@ class BseStockDetailsView(View):
     
 class BSEGraphView(View):
     def get(self, request, symbol):
-        
-        """Handles GET requests and fetches 1-minute interval stock data."""
-        
-        symbol = tickers[symbol]  # Example stock symbol
-        data = self.fetch_stock_data(f"{symbol}.BO")
-        return JsonResponse({"symbol": symbol, "data": data})  # JSON response
+        # Get the mapped ticker symbol (like RELIANCE -> RELIANCE.BO)
+        ticker_symbol = tickers.get(symbol, None)
+        if not ticker_symbol:
+            return JsonResponse({"error": "Symbol not found"}, status=404)
 
-    def fetch_stock_data(self, symbol, period="1d", interval="5m"):
-        """Fetch stock data at 1-minute intervals from Yahoo Finance."""
-        ticker = yf.Ticker(f"{symbol}")  # Example stock symbol
-        df = ticker.history(period=period, interval=interval)
+        full_symbol = f"{ticker_symbol}.BO"
+        data = self.fetch_stock_data(full_symbol)
+        return JsonResponse({"symbol": full_symbol, "data": data})
 
-        if df.empty:
-            return []  # Return empty list if no data is available
+    def fetch_stock_data(self, symbol, period="1d", interval="1m"):
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+        params = {
+            "interval": interval,
+            "range": period
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
 
-        df.index = df.index.strftime('%Y-%m-%d %H:%M:%S')  # Convert index to readable string format
+        response = requests.get(url, params=params, headers=headers)
+        if response.status_code != 200:
+            return []
 
-        # Convert DataFrame to a dictionary format
-        stock_data = df[['Close']].reset_index()
-        stock_data.rename(columns={"Datetime": "date", "Close": "close_price"}, inplace=True)
+        try:
+            data = response.json()
+            result = data["chart"]["result"][0]
+            timestamps = result["timestamp"]
+            indicators = result["indicators"]["quote"][0]
 
-        return stock_data.to_dict(orient='records')  # JSON-friendly format
+            df = pd.DataFrame(indicators)
+            df["date"] = pd.to_datetime(timestamps, unit="s").strftime('%Y-%m-%d %H:%M:%S')
+            df = df[['date', 'close']]  # Keep only date and close price
+            df.rename(columns={"close": "close_price"}, inplace=True)
+
+            # Drop rows with null close_price (sometimes in incomplete data)
+            df.dropna(subset=["close_price"], inplace=True)
+
+            return df.to_dict(orient='records')
+
+        except Exception as e:
+            print("Error parsing stock data:", e)
+            return []
     
 
 
@@ -514,8 +575,8 @@ class BSEGraphView(View):
 class FetchBSEMonthYearStockGraphDataView(View):
     def get(self, request, *args, **kwargs):
         # Define the time ranges
-        # time_ranges = ["1M", "6M", "1Y", "3Y", "5Y", "10Y"]
-        time_ranges = ["10Y"]
+        time_ranges = ["1M", "6M", "1Y", "3Y", "5Y", "10Y"]
+        # time_ranges = ["10Y"]
         saved_count = 0
         
         for time_range in time_ranges:
@@ -739,3 +800,16 @@ class BalanceSheetDataView(View):
             })
 
         return JsonResponse(data, safe=False)
+
+#-------------------------------------------------------------------------------------
+from .nsegoldencross import NSEGoldenCross
+class NSEGoldenCrossStocks(View):
+    def get(self, request):
+        try:
+            obj = NSEGoldenCross()
+            stocks = obj.goldencross_stocks()  # Fetch golden cross stocks
+            return JsonResponse({"stocks": stocks})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)      
+        
+        

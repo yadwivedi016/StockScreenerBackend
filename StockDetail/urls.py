@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AddNifty50StockView, StockDetailsView, SearchView, GraphView, FetchNifty50StockGraphDataView, GetNifty50StockGraphDataView, BSE500StockView, BseStockDetailsView, BSEGraphView, GetBSEMonthAndYearStockGraphDataView, FetchBSEMonthYearStockGraphDataView, BalanceSheetScraperView, BalanceSheetDataView
+from .views import AddNifty50StockView, StockDetailsView, SearchView, GraphView, FetchNifty50StockGraphDataView, GetNifty50StockGraphDataView, BSE500StockView, BseStockDetailsView, BSEGraphView, GetBSEMonthAndYearStockGraphDataView, FetchBSEMonthYearStockGraphDataView, BalanceSheetScraperView, BalanceSheetDataView,NSEGoldenCrossStocks
 
 urlpatterns = [
     path("", SearchView.as_view(), name="search-view"),  # Search page
@@ -30,4 +30,6 @@ urlpatterns = [
     # path("balance-sheet-data/", BalanceSheetDataView.as_view(), name="balance_sheet_data"),  # All data
    
     path("balance-sheet-data/<str:company_name>/", BalanceSheetDataView.as_view(), name="balance_sheet_data_company"),  # Data for a specific company
+
+    path('nse-golden-cross-stocks/', NSEGoldenCrossStocks.as_view(), name='nse-golden-cross-stocks-view'),  # NSE Golden Cross Stocks
 ]

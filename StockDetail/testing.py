@@ -1,10 +1,29 @@
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
+import json
 
-url = "https://chartink.com/screener/macd-bearish-or-bullish-crossover"
-soup = BeautifulSoup(requests.get(url).text, "html.parser")
+# Headers to avoid bot detection
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE",
+}
 
-data = soup.find("a", class_="text-teal-700")
+# Start a session
+session = requests.Session()
 
-for i in data:
-    print(i.text.strip())
+# Request the page
+url = "https://dhan.co/stocks/market/golden-crossover-stocks/"
+response = session.get(url, headers=headers)
+
+# Parse HTML content
+soup = BeautifulSoup(response.content, "html.parser")
+
+# Find the script tag containing the JSON data
+data = soup.find_all("p",class_='truncate')
+
+
+stocks = [item.text.strip() for item in data]
+    
+print(stocks)
+print(soup.prettify())
